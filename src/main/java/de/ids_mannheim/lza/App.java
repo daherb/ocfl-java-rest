@@ -11,6 +11,8 @@ import edu.wisc.library.ocfl.core.extension.storage.layout.config.HashedNTupleLa
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.cli.*;
+
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,12 +32,18 @@ public class App
 
     static Path repoDir = Paths.get("ocfl-repo"); // This directory contains the OCFL storage root.
 
-    static Path workDir = Paths.get("ocfl-work"); // This directory is used to assemble OCFL versions. It cannot be within
+    static Path workDir = Paths.get("ocfl-work"); // This directory is used to assemble OCFL versions.
+                                                        // It cannot be within the storage root
 
     private final OcflRepository repo;
 
     public App() {
-
+        this(repoDir.toString(),workDir.toString());
+    }
+    
+    public App(String repoDir, String workDir) {
+        App.repoDir = Paths.get(repoDir);
+        App.workDir = Paths.get(workDir);
         // the OCFL storage root.
         if (!App.repoDir.toFile().exists())
             App.repoDir.toFile().mkdir();
@@ -50,8 +58,9 @@ public class App
                 .defaultLayoutConfig(new HashedNTupleLayoutConfig()
                         .setTupleSize(2).
                         setDigestAlgorithm(DigestAlgorithm.sha512))
-                .storage(storage -> storage.fileSystem(repoDir))
-                .workDir(workDir)
+                .storage(storage -> storage.fileSystem(App.repoDir))
+                .workDir(App.workDir)
+                // Optional: add database for caching metadata
                 //.objectDetailsDb(new ObjectDetailsDatabaseBuilder().dataSource(ds).build())
                 .build();
     }
@@ -78,7 +87,19 @@ public class App
      */
     public static void main( String[] args )
     {
-        App app = new App();
+        Options options = new Options();
+        options.addOption(newOpt("s","store", true, "The OCFL store", true));
+        options.addOption(newOpt("w", "work-dir", true, "The work dir", true));
+        CommandLineParser parser = new DefaultParser();
+        HelpFormatter formatter = new HelpFormatter();
+        CommandLine cmd = null;
+        try {
+            cmd = parser.parse(options, args);  //it will parse according to the options and parse option value
+        } catch (ParseException e) {
+            formatter.printHelp("App", options);
+            System.exit(1);
+        }
+        App app = new App(cmd.getOptionValue("s"), cmd.getOptionValue("w"));
 
         app.logger.info("Starting server");
         final HttpServer server = app.startServer();
@@ -101,5 +122,21 @@ public class App
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Create new option and set its required feature
+     * @param opt the short name
+     * @param longOpt the long name
+     * @param hasArg requires an argument
+     * @param description option description
+     * @param required flag if the option is required
+     * @return the new option
+     */
+    private static Option newOpt(String opt, String longOpt, boolean hasArg, String description, boolean required)
+    {
+        Option o = new Option(opt, longOpt, hasArg, description);
+        o.setRequired(required);
+        return o;
     }
 }
