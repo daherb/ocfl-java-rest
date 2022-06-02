@@ -12,11 +12,13 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
 @Path("list_objects")
-public class ListObjects {
+public class ListObjects extends Function {
 
     /**
      * Method handling HTTP GET requests. The returned object will be sent
@@ -26,7 +28,7 @@ public class ListObjects {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjects(@Context ResourceConfig ctx) throws JsonProcessingException {
+    public Response listObjects(@Context ResourceConfig ctx) throws JsonProcessingException {
         // Convert to JSON
         ObjectMapper mapper = new ObjectMapper();
         String json =
@@ -35,5 +37,11 @@ public class ListObjects {
         return Response.ok().entity(json).build() ;
     }
 
+    public String getDescription() {
+        return "List all objects in the store. Returns a JSON list of strings containing all object identifiers";
+    }
 
+    public Map<String, String> getParameters() {
+        return new HashMap<>();
+    }
 }

@@ -18,9 +18,11 @@ import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Path("get_object")
-public class GetObject {
+public class GetObject extends Function {
 
     /**
      * Method handling HTTP GET requests. The returned object will be sent
@@ -30,7 +32,7 @@ public class GetObject {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response objectGet(@QueryParam("object_id") @NotNull String id,
+    public Response getObject(@QueryParam("object_id") @NotNull String id,
                               @QueryParam("path") @NotNull String path,
                               @Context ResourceConfig ctx) throws JsonProcessingException, MalformedURLException {
         OcflRepository repo = (OcflRepository) ctx.getProperties().get("ocfl_repo");
@@ -50,5 +52,16 @@ public class GetObject {
         return Response.ok().entity(json).build() ;
     }
 
+    public String getDescription() {
+        return "Gets an object from the store. Returns a JSON object representing the current state of the object";
+    }
+
+    public Map<String, String> getParameters() {
+        Map<String,String> params = new HashMap<>();
+        params.put("object_id", "The ID of the object. If the object does not exist it creates an error. (mandatory)");
+        params.put("path","The path where the files stored in the object should be copied. The target itself must not" +
+                " exist but its parent must exist. (mandatory)");
+        return params;
+    }
 
 }

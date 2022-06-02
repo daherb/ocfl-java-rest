@@ -14,12 +14,12 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Path("validate_objects")
-public class ValidateObjects {
+public class ValidateObjects extends Function {
 
         /**
          * Method handling HTTP GET requests. The returned object will be sent
@@ -29,7 +29,7 @@ public class ValidateObjects {
          */
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Response validate(@Context ResourceConfig ctx) throws UnsupportedEncodingException, JsonProcessingException {
+        public Response validateObjects(@Context ResourceConfig ctx) throws JsonProcessingException {
             OcflRepository repo = (OcflRepository) ctx.getProperties().get("ocfl_repo");
             // Convert to JSON
             ObjectMapper mapper = JsonMapper.builder()
@@ -43,4 +43,13 @@ public class ValidateObjects {
             String json = mapper.writeValueAsString(results);
             return Response.ok().entity(json).build() ;
         }
+
+    public String getDescription() {
+        return "Validates all objects in the store. Returns a JSON object mapping from object identifiers to " +
+                "validation results";
+    }
+
+    public Map<String, String> getParameters() {
+        return new HashMap<>();
+    }
 }
