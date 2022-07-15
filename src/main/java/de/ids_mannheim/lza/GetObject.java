@@ -1,28 +1,32 @@
 package de.ids_mannheim.lza;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.wisc.library.ocfl.api.OcflRepository;
 import edu.wisc.library.ocfl.api.model.ObjectVersionId;
 import edu.wisc.library.ocfl.api.model.OcflObjectVersion;
-import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.glassfish.jersey.server.ResourceConfig;
+import edu.wisc.library.ocfl.api.model.OcflObjectVersionFile;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
-@Path("get_object")
+@RestController
 public class GetObject extends Function {
+
+    @Autowired
+    private ConfigurableApplicationContext applicationContext;
 
     /**
      * Method handling HTTP GET requests. The returned object will be sent
@@ -30,26 +34,25 @@ public class GetObject extends Function {
      *
      * @return JSON response containing the result of the operation or HTTP error code 400
      */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getObject(@QueryParam("object_id") @NotNull String id,
-                              @QueryParam("path") @NotNull String path,
-                              @Context ResourceConfig ctx) throws JsonProcessingException, MalformedURLException {
-        OcflRepository repo = (OcflRepository) ctx.getProperties().get("ocfl_repo");
+    @GetMapping("get_object")
+    public OcflObjectVersion getObject(@RequestParam("object_id") @NotNull String id,
+                                       @RequestParam(value = "path", defaultValue = "null") String path
+                                           ) throws MalformedURLException, JsonProcessingException {
+        OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
+                OcflRepository.class);
         // Get object info
         OcflObjectVersion info = repo.getObject(ObjectVersionId.head(id));
-        // Copy object
-        if (path == null)
-            throw new MalformedURLException("Path is required");
-        repo.getObject(ObjectVersionId.head(id),
-                java.nio.file.Path.of(path));
-        // Convert to JSON
-        ObjectMapper mapper = JsonMapper.builder()
-                .addModule(new JavaTimeModule())
-                .addModule(ObjectVersionFileSerializer.getModule())
-                .build();
-        String json = mapper.writeValueAsString(info);
-        return Response.ok().entity(json).build() ;
+        // Copy object if path is not null
+        if (!path.equals("null")) {
+            repo.getObject(ObjectVersionId.head(id),
+                    java.nio.file.Path.of(path));
+        }
+        return info;
+//        return JsonMapper.builder()
+//                .addModule(new JavaTimeModule())
+//                .addModule(ObjectVersionFileSerializer.getModule())
+//                .build()
+//                .writeValueAsString(info);
     }
 
     public String getDescription() {

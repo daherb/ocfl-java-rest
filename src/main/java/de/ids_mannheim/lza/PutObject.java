@@ -1,26 +1,24 @@
 package de.ids_mannheim.lza;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.wisc.library.ocfl.api.OcflRepository;
 import edu.wisc.library.ocfl.api.model.ObjectVersionId;
 import edu.wisc.library.ocfl.api.model.OcflObjectVersion;
 import edu.wisc.library.ocfl.api.model.VersionInfo;
-import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.*;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Path("put_object")
+@RestController
 public class PutObject extends Function {
+
+    @Autowired
+    private ConfigurableApplicationContext applicationContext;
 
     /**
      * Method handling HTTP GET requests. The returned object will be sent
@@ -28,30 +26,23 @@ public class PutObject extends Function {
      *
      * @return JSON response containing the result of the operation or HTTP error code 400
      */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response putObject(@QueryParam("object_id") @NotNull String id,
-                              @QueryParam("path") @NotNull String path,
-                              @QueryParam("name") String name,
-                              @QueryParam("address") String address,
-                              @QueryParam("message") String message,
-                              @Context ResourceConfig ctx) throws JsonProcessingException {
-        OcflRepository repo = (OcflRepository) ctx.getProperties().get("ocfl_repo");
-        // Copy object
+    @GetMapping("put_object")
+    public OcflObjectVersion putObject(@RequestParam("object_id") @NotNull String id,
+                                       @RequestParam(value="path",defaultValue = "null") @NotNull String path,
+                                       @RequestParam(value="name",defaultValue = "no_name") String name,
+                                       @RequestParam(value = "address",defaultValue = "no_address") String address,
+                                       @RequestParam(value = "message",defaultValue = "") String message) {
+        OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
+                OcflRepository.class);
+        // Get information
         VersionInfo versionInfo = new VersionInfo()
                 .setUser(name,address)
                 .setMessage(message);
+        // Copy object
         repo.putObject(ObjectVersionId.head(id),
                 java.nio.file.Path.of(path),
                 versionInfo);
-        OcflObjectVersion info = repo.getObject(ObjectVersionId.head(id));
-        // Convert to JSON
-        ObjectMapper mapper = JsonMapper.builder()
-                .addModule(new JavaTimeModule())
-                .addModule(ObjectVersionFileSerializer.getModule())
-                .build();
-        String json = mapper.writeValueAsString(info);
-        return Response.ok().entity(json).build() ;
+        return repo.getObject(ObjectVersionId.head(id));
     }
 
     public String getDescription() {
