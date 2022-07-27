@@ -1,6 +1,7 @@
 package de.ids_mannheim.lza;
 
 import edu.wisc.library.ocfl.core.db.ObjectDetailsDatabaseBuilder;
+import edu.wisc.library.ocfl.core.extension.storage.layout.config.FlatLayoutConfig;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -55,14 +56,17 @@ public class App
         PGSimpleDataSource ds = new PGSimpleDataSource();
         ds.setUser("postgres");
         repo = new OcflRepositoryBuilder()
-                .defaultLayoutConfig(new HashedNTupleLayoutConfig()
-                        .setTupleSize(2).
-                        setDigestAlgorithm(DigestAlgorithm.sha512))
+                // Use flat layout for initial testing
+                .defaultLayoutConfig(new FlatLayoutConfig())
+                // Use hierarchical layout for many objects
+                //.defaultLayoutConfig(new HashedNTupleLayoutConfig()
+                //        .setTupleSize(2).
+                //        setDigestAlgorithm(DigestAlgorithm.sha512))
                 .storage(storage -> storage.fileSystem(App.repoDir))
                 .workDir(App.workDir)
                 // Optional: add database for caching metadata
                 //.objectDetailsDb(new ObjectDetailsDatabaseBuilder().dataSource(ds).build())
-                .build();
+                .buildMutable();
     }
 
     /**
