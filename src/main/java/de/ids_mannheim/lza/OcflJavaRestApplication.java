@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 
 @SpringBootApplication
-public class App {
+public class OcflJavaRestApplication {
 
   static Path repoDir = Paths.get("ocfl-repo"); // This directory contains the OCFL storage root.
 
@@ -32,26 +32,26 @@ public class App {
     try {
       cmd = parser.parse(options, args);  //it will parse according to the options and parse option value
     } catch (ParseException e) {
-      formatter.printHelp("App", options);
+      formatter.printHelp("OcflJavaRestApplication", options);
       System.exit(1);
     }
-    ConfigurableApplicationContext ctx = SpringApplication.run(App.class, args);
+    ConfigurableApplicationContext ctx = SpringApplication.run(OcflJavaRestApplication.class, args);
     HashMap<String,Object> map = new HashMap<>();
 
     // TODO handle command line parameters
     // the OCFL storage root.
-    if (!App.repoDir.toFile().exists())
-      App.repoDir.toFile().mkdir();
-    if (!App.workDir.toFile().exists())
-      App.workDir.toFile().mkdir();
+    if (!OcflJavaRestApplication.repoDir.toFile().exists())
+      OcflJavaRestApplication.repoDir.toFile().mkdir();
+    if (!OcflJavaRestApplication.workDir.toFile().exists())
+      OcflJavaRestApplication.workDir.toFile().mkdir();
 //    PGSimpleDataSource ds = new PGSimpleDataSource();
 //    ds.setUser("postgres");
     OcflRepository repo = new OcflRepositoryBuilder()
             .defaultLayoutConfig(new HashedNTupleLayoutConfig()
                     .setTupleSize(2).
                     setDigestAlgorithm(DigestAlgorithm.sha512))
-            .storage(storage -> storage.fileSystem(App.repoDir))
-            .workDir(App.workDir)
+            .storage(storage -> storage.fileSystem(OcflJavaRestApplication.repoDir))
+            .workDir(OcflJavaRestApplication.workDir)
             // Optional: add database for caching metadata
             //.objectDetailsDb(new ObjectDetailsDatabaseBuilder().dataSource(ds).build())
             .build();
