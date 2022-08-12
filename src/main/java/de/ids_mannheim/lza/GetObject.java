@@ -32,13 +32,16 @@ public class GetObject extends Function {
      * to the client as "application/json" media type.
      *
      * @return JSON response containing the result of the operation or HTTP error code 400
+     * @throws NoSuchPropertyException if repository is missing from context
      */
     @GetMapping("get_object")
     public OcflObjectVersion getObject(@RequestParam("object_id") String id,
                                        @RequestParam(value = "path", defaultValue = "null") String path
-                                           ) throws MalformedURLException, JsonProcessingException {
+                                           ) throws NoSuchPropertyException {
         OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
                 OcflRepository.class);
+        if (repo == null)
+            throw new NoSuchPropertyException("Repository missing from context");
         // Get object info
         OcflObjectVersion info = repo.getObject(ObjectVersionId.head(id));
         // Copy object if path is not null

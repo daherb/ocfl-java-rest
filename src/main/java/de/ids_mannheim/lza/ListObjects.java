@@ -22,13 +22,17 @@ public class ListObjects extends Function {
      * to the client as "application/json" media type.
      *
      * @return JSON response containing the list of objects or HTTP error code 400
+     * @throws NoSuchPropertyException if repository is missing from context
      */
     @GetMapping("list_objects")
-    public List<String> listObjects() {
-    List<String> objectList = applicationContext.getEnvironment().getProperty("ocfl_repo",
-            OcflRepository.class)
-                                .listObjectIds().collect(Collectors.toList());
-        return objectList ;
+    public List<String> listObjects() throws NoSuchPropertyException{
+        OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
+            OcflRepository.class);
+        if ( repo != null) {
+            List<String> objectList = repo.listObjectIds().collect(Collectors.toList());
+            return objectList ;
+        }
+        throw new NoSuchPropertyException("Repository is missing from context");
     }
 
     public String getDescription() {

@@ -24,6 +24,7 @@ public class PutObject extends Function {
      * to the client as "application/json" media type.
      *
      * @return JSON response containing the result of the operation or HTTP error code 400
+     * @throws NoSuchPropertyException if the repository is missing from context
      */
     @GetMapping("put_object")
     public OcflObjectVersion putObject(@RequestParam("object_id") String id,
@@ -33,15 +34,18 @@ public class PutObject extends Function {
                                        @RequestParam(value = "message",defaultValue = "") String message) throws NoSuchPropertyException {
         OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
                 OcflRepository.class);
-        // Get information
-        VersionInfo versionInfo = new VersionInfo()
+        if (repo != null) {
+            // Get information
+            VersionInfo versionInfo = new VersionInfo()
                 .setUser(name,address)
                 .setMessage(message);
-        // Copy object
-        repo.putObject(ObjectVersionId.head(id),
+            // Copy object
+            repo.putObject(ObjectVersionId.head(id),
                 java.nio.file.Path.of(path),
                 versionInfo);
-        return repo.getObject(ObjectVersionId.head(id));
+            return repo.getObject(ObjectVersionId.head(id));
+        }
+        throw new NoSuchPropertyException("Repository is missing from context");
     }
 
     public String getDescription() {
