@@ -38,9 +38,12 @@ public class OcflJavaRestApplication {
             .build());
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();
-    CommandLine cmd = null;
     try {
-      cmd = parser.parse(options, args);  //it will parse according to the options and parse option value
+        CommandLine cmd = parser.parse(options, args);  //it will parse according to the options and parse option value
+        if (cmd.hasOption("s"))
+            OcflJavaRestApplication.repoDir = Paths.get(cmd.getOptionValue("s"));
+        if (cmd.hasOption("w"))
+            OcflJavaRestApplication.workDir = Paths.get(cmd.getOptionValue("w"));
     } catch (ParseException e) {
       formatter.printHelp("OcflJavaRestApplication", options);
       System.exit(1);
