@@ -1,4 +1,4 @@
-package de.ids-mannheim.laz;
+package de.ids_mannheim.laz;
 
 import static org.junit.Assert.assertTrue;
 
