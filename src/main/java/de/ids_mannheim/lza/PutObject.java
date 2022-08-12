@@ -20,9 +20,14 @@ public class PutObject extends Function {
     private ConfigurableApplicationContext applicationContext;
 
     /**
-     * Method handling HTTP GET requests. The returned object will be sent
-     * to the client as "application/json" media type.
+     * Method handling HTTP GET requests.The returned object will be sent
+ to the client as "application/json" media type.
      *
+     * @param id the object id
+     * @param path the path to take the object data from
+     * @param name the name of the object creator
+     * @param address contact of the object creator
+     * @param message message to be added when creating object
      * @return JSON response containing the result of the operation or HTTP error code 400
      * @throws NoSuchPropertyException if the repository is missing from context
      */
@@ -48,11 +53,13 @@ public class PutObject extends Function {
         throw new NoSuchPropertyException("Repository is missing from context");
     }
 
+    @Override
     public String getDescription() {
         return "Puts an object into the store. Returns JSON object representing the most recent state of the object, " +
                 "i.e. after putting it into the store";
     }
 
+    @Override
     public Map<String, String> getParameters() {
         Map<String,String> params = new HashMap<>();
         params.put("object_id", "The ID of the object. If the object does not exist, it will be created, otherwise it" +

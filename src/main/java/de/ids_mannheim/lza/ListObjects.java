@@ -35,10 +35,12 @@ public class ListObjects extends Function {
         throw new NoSuchPropertyException("Repository is missing from context");
     }
 
+    @Override
     public String getDescription() {
         return "List all objects in the store. Returns a JSON list of strings containing all object identifiers";
     }
 
+    @Override
     public Map<String, String> getParameters() {
         return new HashMap<>();
     }

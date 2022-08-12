@@ -3,7 +3,6 @@ package de.ids_mannheim.lza;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Map;
 
 abstract class Function {

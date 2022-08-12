@@ -38,11 +38,13 @@ public class ValidateObjects extends Function {
         throw new NoSuchPropertyException("Repository is missing from context");
     }
 
+    @Override
     public String getDescription() {
         return "Validates all objects in the store. Returns a JSON object mapping from object identifiers to " +
                 "validation results";
     }
 
+    @Override
     public Map<String, String> getParameters() {
         return new HashMap<>();
     }
