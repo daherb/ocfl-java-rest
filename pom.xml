@@ -57,6 +57,22 @@
 	<groupId>org.springframework.boot</groupId>
 	<artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <id>java</id>
+          </execution>
+        </executions>
+        <configuration>
+            <mainClass>de.ids_mannheim.lza.OcflJavaRestApplication</mainClass>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
