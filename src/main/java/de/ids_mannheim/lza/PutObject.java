@@ -4,7 +4,6 @@ import edu.wisc.library.ocfl.api.OcflRepository;
 import edu.wisc.library.ocfl.api.model.ObjectVersionId;
 import edu.wisc.library.ocfl.api.model.OcflObjectVersion;
 import edu.wisc.library.ocfl.api.model.VersionInfo;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,11 +26,11 @@ public class PutObject extends Function {
      * @return JSON response containing the result of the operation or HTTP error code 400
      */
     @GetMapping("put_object")
-    public OcflObjectVersion putObject(@RequestParam("object_id") @NotNull String id,
-                                       @RequestParam(value="path",defaultValue = "null") @NotNull String path,
+    public OcflObjectVersion putObject(@RequestParam("object_id") String id,
+                                       @RequestParam(value="path",defaultValue = "null") String path,
                                        @RequestParam(value="name",defaultValue = "no_name") String name,
                                        @RequestParam(value = "address",defaultValue = "no_address") String address,
-                                       @RequestParam(value = "message",defaultValue = "") String message) {
+                                       @RequestParam(value = "message",defaultValue = "") String message) throws NoSuchPropertyException {
         OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
                 OcflRepository.class);
         // Get information

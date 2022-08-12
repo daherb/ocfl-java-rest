@@ -11,7 +11,6 @@ import edu.wisc.library.ocfl.api.OcflRepository;
 import edu.wisc.library.ocfl.api.model.ObjectVersionId;
 import edu.wisc.library.ocfl.api.model.OcflObjectVersion;
 import edu.wisc.library.ocfl.api.model.OcflObjectVersionFile;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,7 +34,7 @@ public class GetObject extends Function {
      * @return JSON response containing the result of the operation or HTTP error code 400
      */
     @GetMapping("get_object")
-    public OcflObjectVersion getObject(@RequestParam("object_id") @NotNull String id,
+    public OcflObjectVersion getObject(@RequestParam("object_id") String id,
                                        @RequestParam(value = "path", defaultValue = "null") String path
                                            ) throws MalformedURLException, JsonProcessingException {
         OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
