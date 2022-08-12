@@ -24,8 +24,18 @@ public class OcflJavaRestApplication {
 
   public static void main(String[] args) {
     Options options = new Options();
-    options.addOption(newOpt("s","store", true, "The OCFL store", false));
-    options.addOption(newOpt("w", "work-dir", true, "The work dir", false));
+    options.addOption(Option.builder("s")
+            .longOpt("store")
+            .desc("The OCFL store")
+            .hasArg()
+            .required(false)
+            .build());
+        options.addOption(Option.builder("w")
+            .longOpt("work-dir")
+            .desc("The work dir")
+            .hasArg()
+            .required(false)
+            .build());
     CommandLineParser parser = new DefaultParser();
     HelpFormatter formatter = new HelpFormatter();
     CommandLine cmd = null;
@@ -57,21 +67,5 @@ public class OcflJavaRestApplication {
             .build();
     map.put("ocfl_repo",repo);
     ctx.getEnvironment().getPropertySources().addLast(new MapPropertySource("MY_MAP", map));
-  }
-
-  /**
-   * Create new option and set its required feature
-   * @param opt the short name
-   * @param longOpt the long name
-   * @param hasArg requires an argument
-   * @param description option description
-   * @param required flag if the option is required
-   * @return the new option
-   */
-  private static Option newOpt(String opt, String longOpt, boolean hasArg, String description, boolean required)
-  {
-    Option o = new Option(opt, longOpt, hasArg, description);
-    o.setRequired(required);
-    return o;
   }
 }
