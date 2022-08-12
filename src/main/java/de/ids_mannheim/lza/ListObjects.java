@@ -1,46 +1,46 @@
 package de.ids_mannheim.lza;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.wisc.library.ocfl.api.OcflRepository;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
-@Path("list_objects")
+@RestController
 public class ListObjects extends Function {
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     /**
      * Method handling HTTP GET requests. The returned object will be sent
      * to the client as "application/json" media type.
      *
      * @return JSON response containing the list of objects or HTTP error code 400
+     * @throws NoSuchPropertyException if repository is missing from context
      */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response listObjects(@Context ResourceConfig ctx) throws JsonProcessingException {
-        // Convert to JSON
-        ObjectMapper mapper = new ObjectMapper();
-        String json =
-                mapper.writeValueAsString(((OcflRepository) ctx.getProperties().get("ocfl_repo"))
-                        .listObjectIds().collect(Collectors.toList()));
-        return Response.ok().entity(json).build() ;
+    @GetMapping("list_objects")
+    public List<String> listObjects() throws NoSuchPropertyException{
+        OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
+            OcflRepository.class);
+        if ( repo != null) {
+            List<String> objectList = repo.listObjectIds().collect(Collectors.toList());
+            return objectList ;
+        }
+        throw new NoSuchPropertyException("Repository is missing from context");
     }
 
+    @Override
     public String getDescription() {
         return "List all objects in the store. Returns a JSON list of strings containing all object identifiers";
     }
 
+    @Override
     public Map<String, String> getParameters() {
         return new HashMap<>();
     }

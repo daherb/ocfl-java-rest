@@ -1,54 +1,50 @@
 package de.ids_mannheim.lza;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.wisc.library.ocfl.api.OcflRepository;
 import edu.wisc.library.ocfl.api.model.ValidationResults;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Path("validate_objects")
+@RestController
 public class ValidateObjects extends Function {
 
-        /**
-         * Method handling HTTP GET requests. The returned object will be sent
-         * to the client as "application/json" media type.
-         *
-         * @return JSON response containing the result of the operation or HTTP error code 400
-         */
-        @GET
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response validateObjects(@Context ResourceConfig ctx) throws JsonProcessingException {
-            OcflRepository repo = (OcflRepository) ctx.getProperties().get("ocfl_repo");
-            // Convert to JSON
-            ObjectMapper mapper = JsonMapper.builder()
-                    .addModule(new JavaTimeModule())
-                    .addModule(ObjectVersionFileSerializer.getModule())
-                    .build();
-            HashMap<String, ValidationResults> results = new HashMap<>();
+    @Autowired
+    private ConfigurableApplicationContext applicationContext;
+
+    /**
+     * Method handling HTTP GET requests.The returned object will be sent
+ to the client as "application/json" media type.
+     *
+     * @return JSON response containing the result of the operation or HTTP error code 400
+     * @throws NoSuchPropertyException If repository is missing from context
+     */
+    @GetMapping("validate_objects")
+    public Map<String, ValidationResults> validateObjects() throws NoSuchPropertyException {
+        OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
+                OcflRepository.class);
+        HashMap<String, ValidationResults> results = new HashMap<>();
+        if (repo != null) {
             for (String object : repo.listObjectIds().collect(Collectors.toList())) {
                 results.put(object,repo.validateObject(object,true));
             }
-            String json = mapper.writeValueAsString(results);
-            return Response.ok().entity(json).build() ;
+            return results;
         }
+        throw new NoSuchPropertyException("Repository is missing from context");
+    }
 
+    @Override
     public String getDescription() {
         return "Validates all objects in the store. Returns a JSON object mapping from object identifiers to " +
                 "validation results";
     }
 
+    @Override
     public Map<String, String> getParameters() {
         return new HashMap<>();
     }

@@ -1,22 +1,24 @@
 package de.ids_mannheim.lza;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import edu.wisc.library.ocfl.api.model.OcflObjectVersionFile;
+import org.springframework.boot.jackson.JsonComponent;
 
 import java.io.IOException;
 
 /**
  * Class to serialize OclObjectVersionFile without the "stream" field
  */
-public class ObjectVersionFileSerializer extends StdSerializer<OcflObjectVersionFile> {
+@JsonComponent
+public class ObjectVersionFileSerializer extends JsonSerializer<OcflObjectVersionFile> {
 
-    protected ObjectVersionFileSerializer(Class<OcflObjectVersionFile> t) {
-        super(t);
+    protected ObjectVersionFileSerializer() {
+        super();
     }
+
+
 
     @Override
     public void serialize(OcflObjectVersionFile ocflObjectVersionFile, JsonGenerator jsonGenerator,
@@ -28,10 +30,10 @@ public class ObjectVersionFileSerializer extends StdSerializer<OcflObjectVersion
         jsonGenerator.writeEndObject();
     }
 
-    public static Module getModule() {
-        SimpleModule module =
-                new SimpleModule("CustomObjectVersionFileSerializer");
-        module.addSerializer(OcflObjectVersionFile.class, new ObjectVersionFileSerializer(OcflObjectVersionFile.class));
-        return module;
-    }
+//    public static Module getModule() {
+//        SimpleModule module =
+//                new SimpleModule("CustomObjectVersionFileSerializer");
+//        module.addSerializer(OcflObjectVersionFile.class, new ObjectVersionFileSerializer(OcflObjectVersionFile.class));
+//        return module;
+//    }
 }

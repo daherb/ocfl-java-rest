@@ -1,7 +1,8 @@
 package de.ids_mannheim.lza;
 
-import jakarta.ws.rs.Path;
+import org.springframework.web.bind.annotation.GetMapping;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 abstract class Function {
@@ -11,10 +12,12 @@ abstract class Function {
      * @return the name
      */
     public String getName() {
-        if (this.getClass().isAnnotationPresent(Path.class))
-            return this.getClass().getAnnotation(Path.class).value();
-        else
-            throw new RuntimeException("Path annotation missing in class " + this.getClass());
+        for (Method m : this.getClass().getDeclaredMethods()) {
+            if (m.isAnnotationPresent(GetMapping.class)) {
+                return String.join(",", m.getAnnotation(GetMapping.class).value());
+            }
+        }
+        throw new RuntimeException("Path annotation missing in class " + this.getClass());
     }
 
     /**

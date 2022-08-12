@@ -1,64 +1,65 @@
 package de.ids_mannheim.lza;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.wisc.library.ocfl.api.OcflRepository;
 import edu.wisc.library.ocfl.api.model.ObjectVersionId;
 import edu.wisc.library.ocfl.api.model.OcflObjectVersion;
 import edu.wisc.library.ocfl.api.model.VersionInfo;
-import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.*;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Path("put_object")
+@RestController
 public class PutObject extends Function {
 
+    @Autowired
+    private ConfigurableApplicationContext applicationContext;
+
     /**
-     * Method handling HTTP GET requests. The returned object will be sent
-     * to the client as "application/json" media type.
+     * Method handling HTTP GET requests.The returned object will be sent
+ to the client as "application/json" media type.
      *
+     * @param id the object id
+     * @param path the path to take the object data from
+     * @param name the name of the object creator
+     * @param address contact of the object creator
+     * @param message message to be added when creating object
      * @return JSON response containing the result of the operation or HTTP error code 400
+     * @throws NoSuchPropertyException if the repository is missing from context
      */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response putObject(@QueryParam("object_id") @NotNull String id,
-                              @QueryParam("path") @NotNull String path,
-                              @QueryParam("name") String name,
-                              @QueryParam("address") String address,
-                              @QueryParam("message") String message,
-                              @Context ResourceConfig ctx) throws JsonProcessingException {
-        OcflRepository repo = (OcflRepository) ctx.getProperties().get("ocfl_repo");
-        // Copy object
-        VersionInfo versionInfo = new VersionInfo()
+    @GetMapping("put_object")
+    public OcflObjectVersion putObject(@RequestParam("object_id") String id,
+                                       @RequestParam(value="path",defaultValue = "null") String path,
+                                       @RequestParam(value="name",defaultValue = "no_name") String name,
+                                       @RequestParam(value = "address",defaultValue = "no_address") String address,
+                                       @RequestParam(value = "message",defaultValue = "") String message) throws NoSuchPropertyException {
+        OcflRepository repo = applicationContext.getEnvironment().getProperty("ocfl_repo",
+                OcflRepository.class);
+        if (repo != null) {
+            // Get information
+            VersionInfo versionInfo = new VersionInfo()
                 .setUser(name,address)
                 .setMessage(message);
-        repo.putObject(ObjectVersionId.head(id),
+            // Copy object
+            repo.putObject(ObjectVersionId.head(id),
                 java.nio.file.Path.of(path),
                 versionInfo);
-        OcflObjectVersion info = repo.getObject(ObjectVersionId.head(id));
-        // Convert to JSON
-        ObjectMapper mapper = JsonMapper.builder()
-                .addModule(new JavaTimeModule())
-                .addModule(ObjectVersionFileSerializer.getModule())
-                .build();
-        String json = mapper.writeValueAsString(info);
-        return Response.ok().entity(json).build() ;
+            return repo.getObject(ObjectVersionId.head(id));
+        }
+        throw new NoSuchPropertyException("Repository is missing from context");
     }
 
+    @Override
     public String getDescription() {
         return "Puts an object into the store. Returns JSON object representing the most recent state of the object, " +
                 "i.e. after putting it into the store";
     }
 
+    @Override
     public Map<String, String> getParameters() {
         Map<String,String> params = new HashMap<>();
         params.put("object_id", "The ID of the object. If the object does not exist, it will be created, otherwise it" +
